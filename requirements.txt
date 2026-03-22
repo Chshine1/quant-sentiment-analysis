@@ -1,0 +1,26 @@
+# Stock Return Prediction with Twitter Sentiment Analysis
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# NLP & Sentiment Analysis
+transformers>=4.30.0
+textblob>=0.17.1
+nltk>=3.8.0
+
+# Financial Data (optional - for control variables)
+yfinance>=0.2.0
+
+# Machine Learning & Evaluation
+scikit-learn>=1.3.0
+
+# Utilities
+tqdm>=4.65.0
+
+# Optional: GPU acceleration
+# pip install torch --index-url https://download.pytorch.org/whl/cu118
