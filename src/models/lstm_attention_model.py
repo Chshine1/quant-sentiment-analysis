@@ -168,7 +168,7 @@ class StockReturnPredictionModel(nn.Module):
                 'momentum': 3,
                 'decay': 1,
                 'control': 5,
-                'dow': 5,
+                'dow': 7,
                 'month': 4
             }
         

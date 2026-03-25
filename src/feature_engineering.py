@@ -73,11 +73,15 @@ class FeatureEngineer:
         df['sentiment_std_T'] = sentiment_std.fillna(0)
         
         df['positive_ratio'] = df.groupby('STOCK_CODE')['daily_sentiment_finbert'].transform(
-            lambda x: (x.shift(1).rolling(window=self.T, min_periods=1) > 0.1).mean()
+            lambda x: x.shift(1).rolling(window=self.T, min_periods=1).apply(
+                lambda y: (y > 0.1).mean(), raw=False
+            )
         )
         
         df['negative_ratio'] = df.groupby('STOCK_CODE')['daily_sentiment_finbert'].transform(
-            lambda x: (x.shift(1).rolling(window=self.T, min_periods=1) < -0.1).mean()
+            lambda x: x.shift(1).rolling(window=self.T, min_periods=1).apply(
+                lambda y: (y < -0.1).mean(), raw=False
+            )
         )
         
         return df
@@ -267,7 +271,11 @@ class FeatureEngineer:
         control = self.scalers['control'].transform(df[control_cols].fillna(0))
         
         dow_cols = ['DOW']
-        dow = pd.get_dummies(df['DOW'], prefix='dow').values
+        dow_dummies = pd.get_dummies(df['DOW'], prefix='dow')
+        for d in range(7):
+            if d not in dow_dummies.columns:
+                dow_dummies[d] = 0
+        dow = dow_dummies[[i for i in range(7)]].values
         
         month_cols = ['MONTH']
         month_dummies = pd.get_dummies(df['MONTH'], prefix='month')
@@ -295,7 +303,7 @@ class FeatureEngineer:
             'momentum': 3,
             'decay': 1,
             'control': 5,
-            'dow': 5,
+            'dow': 7,
             'month': 4,
             'lstm_hidden': 64
         }
@@ -366,9 +374,8 @@ def create_lookback_data(df: pd.DataFrame, feature_engineer: FeatureEngineer,
     logger.info(f"Dropping first {T} days for lookback period. Cutoff: {cutoff_date}")
     
     df_filtered = df[df['DATE'] >= cutoff_date].copy()
-    
-    df_sorted = df.sort_values(['STOCK_CODE', 'DATE']).reset_index(drop=True)
-    sequences = feature_engineer.get_sentiment_sequences(df_sorted, T=T)
+    df_filtered = df_filtered.sort_values(['STOCK_CODE', 'DATE']).reset_index(drop=True)
+    sequences = feature_engineer.get_sentiment_sequences(df_filtered, T=T)
     
     return df_filtered, sequences
 

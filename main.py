@@ -143,18 +143,28 @@ def engineer_features(daily_df: pd.DataFrame, config: Config) -> tuple:
         val_ratio=config.VAL_RATIO
     )
     
+    train_indices = train_df.index.tolist()
+    val_indices = val_df.index.tolist()
+    test_indices = test_df.index.tolist()
+    
+    train_sequences = sequences[train_indices]
+    val_sequences = sequences[val_indices]
+    test_sequences = sequences[test_indices]
+    
     logger.info(f"Training samples: {len(train_df)}")
     logger.info(f"Validation samples: {len(val_df)}")
     logger.info(f"Test samples: {len(test_df)}")
     
-    return train_df, val_df, test_df, feature_engineer, sequences
+    return train_df, val_df, test_df, feature_engineer, train_sequences, val_sequences, test_sequences
 
 
 def prepare_datasets(train_df: pd.DataFrame,
                     val_df: pd.DataFrame,
                     test_df: pd.DataFrame,
                     feature_engineer: FeatureEngineer,
-                    sequences: np.ndarray,
+                    train_sequences: np.ndarray,
+                    val_sequences: np.ndarray,
+                    test_sequences: np.ndarray,
                     config: Config) -> tuple:
     """
     Step 3: Prepare datasets for training.
@@ -168,7 +178,7 @@ def prepare_datasets(train_df: pd.DataFrame,
     dataset_builder = DatasetBuilder(feature_engineer)
     
     logger.info("Preparing training dataset...")
-    train_features = dataset_builder.build_dataset(train_df, '1_DAY_RETURN', sequences)
+    train_features = dataset_builder.build_dataset(train_df, '1_DAY_RETURN', train_sequences)
     train_indices = train_df.index.tolist()
     
     for key in train_features:
@@ -178,10 +188,10 @@ def prepare_datasets(train_df: pd.DataFrame,
             logger.info(f"  {key}: shape {train_features[key].shape}")
     
     logger.info("Preparing validation dataset...")
-    val_features = dataset_builder.build_dataset(val_df, '1_DAY_RETURN', sequences)
+    val_features = dataset_builder.build_dataset(val_df, '1_DAY_RETURN', val_sequences)
     
     logger.info("Preparing test dataset...")
-    test_features = dataset_builder.build_dataset(test_df, '1_DAY_RETURN', sequences)
+    test_features = dataset_builder.build_dataset(test_df, '1_DAY_RETURN', test_sequences)
     
     return train_features, val_features, test_features
 
@@ -284,12 +294,12 @@ def main():
     else:
         daily_df = preprocess_data(config)
     
-    train_df, val_df, test_df, feature_engineer, sequences = engineer_features(
+    train_df, val_df, test_df, feature_engineer, train_sequences, val_sequences, test_sequences = engineer_features(
         daily_df, config
     )
     
     train_features, val_features, test_features = prepare_datasets(
-        train_df, val_df, test_df, feature_engineer, sequences, config
+        train_df, val_df, test_df, feature_engineer, train_sequences, val_sequences, test_sequences, config
     )
     
     results_df = train_models(train_features, val_features, test_features, config)

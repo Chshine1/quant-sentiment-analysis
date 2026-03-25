@@ -26,7 +26,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from tqdm import tqdm
 
-from ..models.lstm_attention_model import (
+from src.models.lstm_attention_model import (
     StockReturnPredictionModel,
     StockReturnDataset,
     collate_fn,
@@ -140,8 +140,7 @@ class Trainer:
             self.optimizer,
             mode='min',
             factor=0.5,
-            patience=3,
-            verbose=True
+            patience=3
         )
         
         self.train_losses = []
